@@ -9,10 +9,12 @@ return function(plugin)
 
 	local propertiesInfo = DockWidgetPluginGuiInfo.new(Enum.InitialDockState.Right, false)
 	local propertiesGui = plugin:createDockWidgetPluginGui("ComponentVisualizerProperties", propertiesInfo)
+	propertiesGui.Name = "ComponentVisualizerProperties"
 	propertiesGui.Title = "Component Properties"
 
 	local addNewInfo = DockWidgetPluginGuiInfo.new(Enum.InitialDockState.Float, false, true, 300, 400, 300, 400)
 	local addNewGui = plugin:createDockWidgetPluginGui("ComponentVisualizerAddNew", addNewInfo)
+	addNewGui.Name = "ComponentVisualizerAddNew"
 	addNewGui.Title = "Add component..."
 
 	componentManager.updated:connect(function(oldState, newState)
