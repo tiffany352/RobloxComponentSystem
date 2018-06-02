@@ -39,14 +39,15 @@ function Textbox:render()
 				end
 			end,
 
-			[Roact.Change.Text] = function(rbx, text)
+			[Roact.Change.Text] = function(rbx)
 				if self.debounce then
 					return
 				end
 				self.debounce = true
-				if setValue and text ~= value then
-					rbx.Text = value
-					setValue(text)
+				local oldText = self.props.value
+				local newText = rbx.Text
+				if setValue and newText ~= oldText then
+					setValue(newText)
 				end
 				self.debounce = false
 			end,

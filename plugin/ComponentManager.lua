@@ -5,6 +5,7 @@ local Source = script.Parent.Parent
 local Maid = require(Source.EntitySystem.Maid)
 local SandboxEnv = require(script.Parent.SandboxEnv)
 local Signal = require(script.Parent.Signal)
+local Serial = require(script.Parent.Serial)
 
 local ComponentManager = {}
 ComponentManager.__index = ComponentManager
@@ -48,6 +49,41 @@ function ComponentManager:destroy()
 	self.maid:destroy()
 end
 
+function ComponentManager:setComponentProperty(componentName, propertyName, value)
+	assert(componentName, "componentName must not be nil")
+	assert(propertyName, "propertyName must not be nil")
+	for _,selected in pairs(Selection:Get()) do
+		if CollectionService:HasTag(selected, componentName) then
+			local module = selected:FindFirstChild("ComponentProperties")
+			local data = module and Serial.Deserialize(module.Source)
+			data = data or {}
+			data[componentName] = data[componentName] or {}
+			local component
+			for i = 1, #self.components do
+				if self.components[i].className == componentName then
+					component = self.components[i]
+				end
+			end
+			local default = nil
+			if component and component.defaultProps then
+				default = component.defaultProps[propertyName]
+			end
+			if default ~= value then
+				data[componentName][propertyName] = value
+			else
+				data[componentName][propertyName] = nil
+			end
+			if not module then
+				module = Instance.new("ModuleScript")
+				module.Name = "ComponentProperties"
+			end
+			module.Source = Serial.Serialize(data)
+			module.Parent = selected
+		end
+	end
+	self:update()
+end
+
 function ComponentManager:doUpdate()
 	local oldState = self.state
 
@@ -67,7 +103,12 @@ function ComponentManager:doUpdate()
 		local hasAny = false
 		for _,tag in pairs(CollectionService:GetTags(selected)) do
 			if componentsByName[tag] then
-				componentsSelected[tag] = true
+				local cstag = componentsSelected[tag]
+				if not cstag then
+					cstag = {}
+					componentsSelected[tag] = cstag
+				end
+				cstag[#cstag+1] = selected
 				hasAny = true
 			end
 		end
@@ -81,10 +122,36 @@ function ComponentManager:doUpdate()
 
 	local selected = {}
 	for i, component in pairs(components) do
-		if componentsSelected[component.name] then
+		local instances = componentsSelected[component.name]
+		if instances then
+			local commonProps = {}
+			for key, default in pairs(component.defaultProps) do
+				local common
+				local pass = true
+				for i = 1, #instances do
+					local instance = instances[i]
+					local module = instance:FindFirstChild("ComponentProperties")
+					local data = module and Serial.Deserialize(module.Source)
+					data = data and data[component.name]
+					local instValue = default
+					if data and data[key] ~= nil then
+						instValue = data[key]
+					end
+					if i == 1 then
+						common = instValue
+					end
+					if instValue ~= common then
+						pass = false
+						break
+					end
+				end
+				if pass then
+					commonProps[key] = common
+				end
+			end
 			selected[#selected+1] = {
 				componentIndex = i,
-				properties = {}, -- todo
+				properties = commonProps,
 			}
 		end
 	end
@@ -109,6 +176,15 @@ function ComponentManager:update()
 end
 
 function ComponentManager:selectionChanged()
+	local selConns = Maid.new()
+	self.maid.selectedConns = selConns
+	for i,sel in pairs(Selection:Get()) do
+		selConns['childAdded'..i] = sel.ChildAdded:Connect(function() self:update() end)
+		local module = sel:FindFirstChild("ComponentProperties")
+		if module then
+			selConns['moduleChanged'..i] = module:GetPropertyChangedSignal("Source"):Connect(function() self:update() end)
+		end
+	end
 	self:update()
 end
 

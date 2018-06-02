@@ -34,6 +34,7 @@ local function Section(props)
 					type = typeof(value),
 					value = value,
 					setValue = function(newValue)
+						props.setProperty(key, newValue)
 					end,
 				}),
 			})
@@ -48,7 +49,7 @@ end
 
 local function Properties(props)
 	return Roact.createElement(ComponentData, {
-		render = function(state)
+		render = function(state, manager)
 			local sections = {}
 			sections.UIListLayout = Roact.createElement("UIListLayout", {
 				SortOrder = Enum.SortOrder.LayoutOrder,
@@ -57,8 +58,11 @@ local function Properties(props)
 				local component = state.components[selected.componentIndex]
 				sections['Component'..i] = Roact.createElement(Section, {
 					name = component.name,
-					defaultProps = component.defaultProps,
+					defaultProps = selected.properties,
 					LayoutOrder = i,
+					setProperty = function(property, value)
+						manager:setComponentProperty(component.name, property, value)
+					end
 				})
 			end
 			return Roact.createElement(RoactStudioWidgets.FitChildren.ScrollingFrame, {
