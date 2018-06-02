@@ -2,6 +2,7 @@ local Source = script.Parent.Parent.Parent
 local Roact = require(Source.Roact)
 local RoactStudioWidgets = require(Source.RoactStudioWidgets)
 local ComponentData = require(script.Parent.ComponentData)
+local EditWidget = require(script.Parent.EditWidget)
 
 local function Section(props)
 	local children = {}
@@ -20,9 +21,22 @@ local function Section(props)
 		children[key] = Roact.createElement(RoactStudioWidgets.Property, {
 			propertyName = key,
 		}, {
-			Control = Roact.createElement(RoactStudioWidgets.Button, {
-
-			}),
+			Control = Roact.createElement(RoactStudioWidgets.FitChildren.Frame, {
+				BackgroundTransparency = 1.0,
+			}, {
+				UIPadding = Roact.createElement("UIPadding", {
+					PaddingLeft = UDim.new(0, 4),
+					PaddingTop = UDim.new(0, 4),
+					PaddingBottom = UDim.new(0, 4),
+				}),
+				UIListLayout = Roact.createElement("UIListLayout"),
+				EditWidget = Roact.createElement(EditWidget, {
+					type = typeof(value),
+					value = value,
+					setValue = function(newValue)
+					end,
+				}),
+			})
 		})
 	end
 

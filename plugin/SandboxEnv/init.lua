@@ -43,6 +43,9 @@ function SandboxEnv.new(script, baseEnv)
 	env.math = math
 	env.table = table
 	env.utf8 = utf8
+	env.Vector2 = Vector2
+	env.Vector3 = Vector3
+	env.Color3 = Color3
 
 	function env.require(module)
 		if typeof(module) ~= 'Instance' then

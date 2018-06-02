@@ -2,7 +2,6 @@ local Selection = game:GetService("Selection")
 local CollectionService = game:GetService("CollectionService")
 
 local Source = script.Parent.Parent
-local EntitySystem = require(Source.EntitySystem)
 local Maid = require(Source.EntitySystem.Maid)
 local SandboxEnv = require(script.Parent.SandboxEnv)
 local Signal = require(script.Parent.Signal)
