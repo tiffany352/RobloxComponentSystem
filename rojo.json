@@ -1,0 +1,22 @@
+{
+  "name": "ComponentSystem",
+  "servePort": 8000,
+  "partitions": {
+    "lib": {
+      "path": "lib/",
+      "target": "ReplicatedStorage.ComponentVisualizerPlugin.EntitySystem"
+    },
+    "plugin": {
+      "path": "plugin/",
+      "target": "ReplicatedStorage.ComponentVisualizerPlugin.Plugin"
+    },
+    "roact": {
+      "path": "roact/lib/",
+      "target": "ReplicatedStorage.ComponentVisualizerPlugin.Roact"
+    },
+    "roact-studio-widgets": {
+      "path": "RoactStudioWidgets/lib/",
+      "target": "ReplicatedStorage.ComponentVisualizerPlugin.RoactStudioWidgets"
+    }
+  }
+}
