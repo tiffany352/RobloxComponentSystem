@@ -138,6 +138,23 @@ Creates a new component description. The `className` is used to know which Colle
 
 A reference to the instance this component is attached to.
 
+#### `Maid Component.maid`
+
+A Maid pattern is embedded into every component. The basic idea is that you can hand things to the maid and it will automatically clean them up.
+
+Types of objects it can clean up:
+
+- `Instance`: Calls `Destroy()`.
+- `RBXScriptConnection`: Calls `Disconnect()`.
+- `table`: Tries to call `destroy()`.
+- `function`: Calls it.
+
+To provide things to the maid, you can either set it as a key, or you can use the `:give()` method.
+
+Setting the same key twice will clean up the previous thing that was in the slot.
+
+Anything may be used as a key as long as it wouldn't shadow a method on the Maid class itself.
+
 #### `string Component.className`
 
 The class name of the component, as passed to `extend()`.
