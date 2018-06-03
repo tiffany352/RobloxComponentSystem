@@ -50,10 +50,10 @@ function Core:getComponentFromInstance(componentDesc, instance)
 	return object
 end
 
-function Core.addComponentToInstance(component, instance)
+function Core:addComponentToInstance(component, instance)
 	CollectionService:AddTag(instance, component.className)
 
-	return Core.getComponentFromInstance(component, instance)
+	return self:getComponentFromInstance(component, instance)
 end
 
 return Core
