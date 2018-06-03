@@ -24,7 +24,7 @@ The source for the library is in the `lib` directory. Everything you
 need is there. The library has no dependencies. You can add it to your
 project using Rojo like so:
 
-```json
+```js
 "EntitySystem": {
 	"path": "EntitySystem/lib/", // Assumes you're using it as a submodule, but anything works.
 	"target": "ReplicatedStorage.EntitySystem" // Wherever you like.
