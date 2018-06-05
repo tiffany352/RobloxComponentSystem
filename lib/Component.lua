@@ -108,6 +108,10 @@ function Component:getComponentsInDescendants(component)
 	return components
 end
 
+function Component:getComponentFromInstance(component, instance)
+	return self._core:getComponentFromInstance(component, instance)
+end
+
 function Component:added()
 end
 
