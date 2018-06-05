@@ -94,7 +94,19 @@ end
 function Component:getComponentInParent(component)
 	-- objects removed from the data model will have the instance removed signal fired on them, so the component will be detached
 	assert(self.instance.Parent, "Component's instance has no parent")
-	return self._core:getComponentInParent(component, self.instance.Parent)
+	return self._core:getComponentFromInstance(component, self.instance.Parent)
+end
+
+function Component:getComponentInAncestor(component)
+	local cur = self.instance.Parent
+	while cur do
+		local object = self._core:getComponentFromInstance(component, cur)
+		if object then
+			return object
+		end
+		cur = cur.Parent
+	end
+	return nil
 end
 
 function Component:getComponentsInDescendants(component)
