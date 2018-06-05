@@ -13,7 +13,7 @@ function ComponentManager.new(desc, core, mixins)
 		instances = {},
 		desc = desc,
 		core = core,
-		mixins = {},
+		mixins = mixins,
 	}
 	setmetatable(self, ComponentManager)
 
