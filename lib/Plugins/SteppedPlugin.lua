@@ -13,18 +13,20 @@ local RunService = game:GetService("RunService")
 local SteppedPlugin = {}
 
 function SteppedPlugin:init(args)
-	self.maid.steppedConn = RunService.RenderStepped:Connect(function(dt)
-		for _,manager in pairs(self.componentManagers) do
-			-- only step components that have a stepped method
-			if manager.desc.stepped then
-				debug.profilebegin(string.format("RenderStep `%s` components", manager.desc.className))
-				for _, object in pairs(manager.instances) do
-					object:stepped(dt)
+	if RunService:IsClient() then
+		self.maid.steppedConn = RunService.RenderStepped:Connect(function(dt)
+			for _,manager in pairs(self.componentManagers) do
+				-- only step components that have a stepped method
+				if manager.desc.stepped then
+					debug.profilebegin(string.format("RenderStep `%s` components", manager.desc.className))
+					for _, object in pairs(manager.instances) do
+						object:stepped(dt)
+					end
+					debug.profileend()
 				end
-				debug.profileend()
 			end
-		end
-	end)
+		end)
+	end
 
 	self.maid.heartbeatConn = RunService.Heartbeat:Connect(function(dt)
 		for _,manager in pairs(self.componentManagers) do
