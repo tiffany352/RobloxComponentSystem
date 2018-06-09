@@ -46,10 +46,22 @@ function NetworkPlugin:init(args)
 		self.maid.remoteEventConn = self.remoteEvent.OnServerEvent:Connect(function(player, instance, className, ...)
 			NetworkPlugin.onServerEvent(self, player, instance, className, ...)
 		end)
+	else
+		self.maid.remoteEventConn = self.remoteEvent.OnClientEvent:Connect(function(instance, className, ...)
+			NetworkPlugin.onClientEvent(self, instance, className, ...)
+		end)
+	end
+end
+
+local function checkType(msg, value, ty)
+	if typeof(value) ~= ty then
+		error(string.format("%s: Expected %s, got %s", msg, ty, typeof(value)))
 	end
 end
 
 function NetworkPlugin:onServerEvent(player, instance, className, ...)
+	checkType("Argument #2", instance, 'Instance')
+	checkType("Argument #3", className, 'string')
 	local componentDesc = self.componentsByName[className]
 	if not componentDesc then
 		error(string.format("No such server component %q", className))
@@ -57,16 +69,16 @@ function NetworkPlugin:onServerEvent(player, instance, className, ...)
 	if not componentDesc.onServerEvent then
 		error(string.format("Server component %q has no onServerEvent method", className))
 	end
-	local manager = self.componentManagers[componentDesc]
-	assert(manager, "No manager associated with componentDesc")
-	local object = manager.instances[instance]
+	local object = self:getComponentFromInstance(componentDesc, instance)
 	if not object then
-		error(string.format("Component %q is not present on the server's instance", className))
+		error(string.format("Component %q is not present on the server's instance %q", className, instance:GetFullName()))
 	end
 	object:onServerEvent(player, ...)
 end
 
-function NetworkPlugin:onClientEvent(player, instance, className, ...)
+function NetworkPlugin:onClientEvent(instance, className, ...)
+	checkType("Argument #1", instance, 'Instance')
+	checkType("Argument #2", className, 'string')
 	local componentDesc = self.componentsByName[className]
 	if not componentDesc then
 		error(string.format("No such client component %q", className))
@@ -74,13 +86,11 @@ function NetworkPlugin:onClientEvent(player, instance, className, ...)
 	if not componentDesc.onClientEvent then
 		error(string.format("Client component %q has no onClientEvent method", className))
 	end
-	local manager = self.componentManagers[componentDesc]
-	assert(manager, "No manager associated with componentDesc")
-	local object = manager.instances[instance]
+	local object = self:getComponentFromInstance(componentDesc, instance)
 	if not object then
-		error(string.format("Component %q is not present on the client's instance", className))
+		error(string.format("Component %q is not present on the client's instance %q", className, instance:GetFullName()))
 	end
-	object:onClientEvent(player, ...)
+	object:onClientEvent(...)
 end
 
 NetworkPlugin.ComponentMixins = {}
