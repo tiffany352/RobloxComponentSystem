@@ -3,6 +3,7 @@ local Roact = require(Source.Roact)
 local RoactStudioWidgets = require(Source.RoactStudioWidgets)
 local ComponentData = require(script.Parent.ComponentData)
 local EditWidget = require(script.Parent.EditWidget)
+local PluginGui = require(script.Parent.PluginGui)
 
 local function Section(props)
 	local children = {}
@@ -65,12 +66,36 @@ local function Properties(props)
 					end
 				})
 			end
-			return Roact.createElement(RoactStudioWidgets.FitChildren.ScrollingFrame, {
-				Size = UDim2.new(1, 0, 1, 0),
-				CanvasSize = UDim2.new(1, 0, 0, 0),
-				BackgroundColor3 = Color3.fromRGB(20, 20, 20),
-				BackgroundTransparency = 1.0,
-			}, sections)
+
+			local title
+			local enabled
+			do
+				local numSel = state.instances and #state.instances or 0
+				local prefix = "Component Properties"
+				title = prefix
+				if numSel == 1 then
+					local inst = state.instances[1]
+					title = string.format("%s - %s %q", prefix, inst.class, inst.name)
+				elseif numSel >= 2 then
+					title = string.format("%s - %i items", prefix, numSel)
+				end
+				enabled = numSel > 0
+			end
+
+			return Roact.createElement(PluginGui, {
+				createPluginGui = props.createPluginGui,
+				Name = "ComponentVisualizer.Properties",
+				Title = title,
+				Enabled = enabled,
+				InitialDockState = Enum.InitialDockState.Right,
+			}, {
+				ScrollingFrame = Roact.createElement(RoactStudioWidgets.FitChildren.ScrollingFrame, {
+					Size = UDim2.new(1, 0, 1, 0),
+					CanvasSize = UDim2.new(1, 0, 0, 0),
+					BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+					BackgroundTransparency = 1.0,
+				}, sections)
+			})
 		end,
 	})
 end
