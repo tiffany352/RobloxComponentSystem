@@ -125,7 +125,7 @@ function ComponentManager:doUpdate()
 		local instances = componentsSelected[component.name]
 		if instances then
 			local commonProps = {}
-			for key, default in pairs(component.defaultProps) do
+			for key, default in pairs(component.defaultProps or {}) do
 				local common
 				local pass = true
 				for i = 1, #instances do
