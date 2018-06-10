@@ -83,18 +83,22 @@ local function Properties(props)
 			end
 
 			return Roact.createElement(PluginGui, {
-				createPluginGui = props.createPluginGui,
+				plugin = props.plugin,
 				Name = "ComponentVisualizer.Properties",
 				Title = title,
 				Enabled = enabled,
 				InitialDockState = Enum.InitialDockState.Right,
 			}, {
-				ScrollingFrame = Roact.createElement(RoactStudioWidgets.FitChildren.ScrollingFrame, {
-					Size = UDim2.new(1, 0, 1, 0),
-					CanvasSize = UDim2.new(1, 0, 0, 0),
-					BackgroundColor3 = Color3.fromRGB(20, 20, 20),
-					BackgroundTransparency = 1.0,
-				}, sections)
+				render = function(toggleEnabled)
+					toggleEnabled(enabled)
+
+					return Roact.createElement(RoactStudioWidgets.FitChildren.ScrollingFrame, {
+						Size = UDim2.new(1, 0, 1, 0),
+						CanvasSize = UDim2.new(1, 0, 0, 0),
+						BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+						BackgroundTransparency = 1.0,
+					}, sections)
+				end,
 			})
 		end,
 	})

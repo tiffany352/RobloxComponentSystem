@@ -84,6 +84,13 @@ function ComponentManager:setComponentProperty(componentName, propertyName, valu
 	self:update()
 end
 
+function ComponentManager:addComponent(componentName)
+	assert(componentName, "componentName must not be nil")
+	for _,selected in pairs(Selection:Get()) do
+		CollectionService:AddTag(selected, componentName)
+	end
+end
+
 function ComponentManager:doUpdate()
 	local oldState = self.state
 
@@ -160,6 +167,7 @@ function ComponentManager:doUpdate()
 		components = components,
 		selected = selected,
 		instances = instances,
+		rawSelection = Selection:Get(),
 	}
 	self.state = newState
 	self.updated:fire(oldState, newState)

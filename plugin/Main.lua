@@ -11,20 +11,11 @@ return function(plugin)
 		manager = componentManager,
 	}, {
 		App = Roact.createElement(App, {
-			createPluginGui = function(...)
-				return plugin:createDockWidgetPluginGui(...)
-			end,
+			plugin = plugin,
 		}),
 	})
 
 	element = Roact.mount(element, nil, "Plugin")
-
-	local toolbar = plugin:toolbar("Components")
-	local addNewButton = plugin:button(toolbar, "Add new...", "Add a component to the selected objects.", "")
-	addNewButton.Click:Connect(function()
-		-- popup menu
-		--addNewGui.Enabled = true
-	end)
 
 	plugin:beforeUnload(function()
 		componentManager:destroy()
