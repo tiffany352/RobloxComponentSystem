@@ -5,6 +5,8 @@ function Component:extend(name, defaultProps)
 	local component = {
 		className = name,
 		defaultProps = defaultProps,
+		ancestorWhitelist = {},
+		ancestorBlacklist = {},
 		-- special flag used for auto-detection
 		_isEntityComponent = true,
 	}

@@ -2,6 +2,7 @@ local CollectionService = game:GetService("CollectionService")
 
 local Component = require(script.Parent.Component)
 local Symbol = require(script.Parent.Symbol)
+local Maid = require(script.Parent.Maid)
 
 local ComponentManager = {}
 ComponentManager.__index = ComponentManager
@@ -14,18 +15,46 @@ function ComponentManager.new(desc, core, mixins)
 		desc = desc,
 		core = core,
 		mixins = mixins,
+		descendantAddedConns = Maid.new(),
+		descendantRemovedConns = Maid.new(),
 	}
 	setmetatable(self, ComponentManager)
+
+	local function tagAdded(instance)
+		self:tagAdded(instance)
+	end
+
+	local function tagRemoved(instance)
+		self:tagRemoved(instance)
+	end
 
 	for _,instance in pairs(CollectionService:GetTagged(desc.className)) do
 		self:tagAdded(instance)
 	end
-	self.instanceAddedConn = CollectionService:GetInstanceAddedSignal(desc.className):Connect(function(instance)
-		self:tagAdded(instance)
-	end)
-	self.instanceRemovedConn = CollectionService:GetInstanceRemovedSignal(desc.className):Connect(function(instance)
-		self:tagRemoved(instance)
-	end)
+	self.instanceAddedConn = CollectionService:GetInstanceAddedSignal(desc.className):Connect(tagAdded)
+	self.instanceRemovedConn = CollectionService:GetInstanceRemovedSignal(desc.className):Connect(tagRemoved)
+
+	for _,ancestor in pairs(desc.ancestorWhitelist) do
+		self.descendantAddedConns[ancestor] = ancestor.DescendantAdded:Connect(tagAdded)
+		self.descendantRemovedConns[ancestor] = ancestor.DescendantRemoving:Connect(function(instance)
+			local conn
+			conn = instance:GetPropertyChangedSignal("Parent"):Connect(function()
+				conn:Disconnect()
+				self:tagRemoved(instance)
+			end)
+		end)
+	end
+
+	for _,ancestor in pairs(desc.ancestorBlacklist) do
+		self.descendantAddedConns[ancestor] = ancestor.DescendantAdded:Connect(tagRemoved)
+		self.descendantRemovedConns[ancestor] = ancestor.DescendantRemoving:Connect(function(instance)
+			local conn
+			conn = instance:GetPropertyChangedSignal("Parent"):Connect(function()
+				conn:Disconnect()
+				self:tagAdded(instance)
+			end)
+		end)
+	end
 
 	return self
 end
@@ -33,9 +62,38 @@ end
 function ComponentManager:destroy()
 	self.instanceAddedConn:Disconnect()
 	self.instanceRemovedConn:Disconnect()
+	self.descendantAddedConns:cleanup()
+	self.descendantRemovedConns:cleanup()
+end
+
+function ComponentManager:shouldHaveComponent(instance)
+	if not CollectionService:HasTag(instance, self.desc.className) then
+		return false
+	end
+
+	if #self.desc.ancestorWhitelist > 0 then
+		for _,ancestor in pairs(self.desc.ancestorWhitelist) do
+			if instance:IsDescendantOf(ancestor) then
+				return true
+			end
+		end
+		return false
+	elseif self.desc.ancestorBlacklist then
+		for _,ancestor in pairs(self.desc.ancestorBlacklist) do
+			if instance:IsDescendantOf(ancestor) then
+				return false
+			end
+		end
+		-- fall through
+	end
+
+	return instance:IsDescendantOf(game) or instance == game
 end
 
 function ComponentManager:tagAdded(instance)
+	if not self:shouldHaveComponent(instance) then
+		return
+	end
 	local object = self.instances[instance]
 	if not object then
 		object = self:createObject(instance)
@@ -49,6 +107,9 @@ function ComponentManager:tagAdded(instance)
 end
 
 function ComponentManager:tagRemoved(instance)
+	if self:shouldHaveComponent(instance) then
+		return
+	end
 	local object = self.instances[instance]
 	if not object then
 		return
