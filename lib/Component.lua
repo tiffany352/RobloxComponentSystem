@@ -124,6 +124,10 @@ function Component:getComponentFromInstance(component, instance)
 	return self._core:getComponentFromInstance(component, instance)
 end
 
+function Component:getComponentsOfType(component)
+	return self._core:getComponentsOfType(component)
+end
+
 function Component:added()
 end
 

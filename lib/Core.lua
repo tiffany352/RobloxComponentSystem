@@ -56,4 +56,13 @@ function Core:addComponentToInstance(component, instance)
 	return self:getComponentFromInstance(component, instance)
 end
 
+function Core:getComponentsOfType(component)
+	local list = {}
+	for _,object in pairs(self.componentManagers[component].instances) do
+		list[#list + 1] = object
+	end
+
+	return list
+end
+
 return Core
