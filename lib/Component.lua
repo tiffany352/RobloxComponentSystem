@@ -32,22 +32,22 @@ function Component:extend(desc, core, mixins)
 
 	local blacklist = {
 		_isEntityComponent = true,
-		className = true,
 		defaultProps = true,
 		ancestorWhitelist = true,
 		ancestorBlacklist = true,
-		init = true,
-		added = true,
-		removed = true,
 	}
 	for key, value in pairs(desc) do
-		if not blacklist[key] then
+		if not blacklist[key] and not class[key] then
 			class[key] = deepCopy(value)
 		end
 	end
 
 	for _,mixin in pairs(mixins) do
-		merge(class, mixin)
+		for key, value in pairs(mixin) do
+			if not blacklist[key] and not class[key] then
+				class[key] = deepCopy(value)
+			end
+		end
 	end
 
 	return class
@@ -75,34 +75,6 @@ function Component:init()
 	end
 
 	self.desc.init(self)
-
-	local module = self.instance:FindFirstChild("ComponentProperties")
-	local function load()
-		local props = require(module:Clone())
-		merge(self, props[self.className])
-	end
-
-	local function connectChanged()
-		self._serializedPropsChanged = module.Changed:Connect(function(prop)
-			if prop == 'Source' then
-				merge(self, self.desc.defaultProps)
-				load()
-			end
-		end)
-	end
-
-	if module then
-		connectChanged()
-		load()
-	else
-		self._childAdded = self.instance.ChildAdded:Connect(function(child)
-			if child.Name == "ComponentProperties" then
-				module = child
-				connectChanged()
-				load()
-			end
-		end)
-	end
 end
 
 function Component:destroy()
@@ -111,12 +83,6 @@ function Component:destroy()
 		if mixin.destroy then
 			mixin.destroy(self)
 		end
-	end
-	if self._serializedPropsChanged then
-		self._serializedPropsChanged:Disconnect()
-	end
-	if self._childAdded then
-		self._childAdded:Disconnect()
 	end
 end
 
