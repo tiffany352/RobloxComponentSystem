@@ -15,4 +15,13 @@ function Component:extend(name, defaultProps)
 	return component
 end
 
+function Component:init()
+end
+
+function Component:added()
+end
+
+function Component:removed()
+end
+
 return Component

@@ -13,8 +13,7 @@ function ComponentManager.new(desc, core, mixins)
 	local self = {
 		instances = {},
 		desc = desc,
-		core = core,
-		mixins = mixins,
+		class = Component:extend(desc, core, mixins),
 		descendantAddedConns = Maid.new(),
 		descendantRemovedConns = Maid.new(),
 	}
@@ -122,7 +121,7 @@ function ComponentManager:tagRemoved(instance)
 end
 
 function ComponentManager:createObject(instance)
-	local object = Component.new(self.desc, self.core, self.mixins, instance)
+	local object = self.class:new(instance)
 	object[AddedFlag] = false
 	self.instances[instance] = object
 	return object

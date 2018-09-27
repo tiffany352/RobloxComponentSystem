@@ -20,33 +20,63 @@ end
 local Component = {}
 Component.__index = Component
 
-function Component.new(desc, core, mixins, instance)
-	local self = {
+function Component:extend(desc, core, mixins)
+	local class = {
 		className = desc.className,
-		instance = instance,
-		maid = Maid.new(),
+		desc = desc,
 		_core = core,
+		_mixins = mixins,
 	}
-	setmetatable(self, Component)
+	class.__index = class
+	setmetatable(class, self)
 
 	local blacklist = {
 		_isEntityComponent = true,
 		className = true,
 		defaultProps = true,
+		ancestorWhitelist = true,
+		ancestorBlacklist = true,
+		init = true,
+		added = true,
+		removed = true,
 	}
 	for key, value in pairs(desc) do
 		if not blacklist[key] then
-			self[key] = deepCopy(value)
+			class[key] = deepCopy(value)
 		end
 	end
 
-	merge(self, desc.defaultProps)
-
 	for _,mixin in pairs(mixins) do
-		merge(self, mixin)
+		merge(class, mixin)
 	end
 
-	local module = instance:FindFirstChild("ComponentProperties")
+	return class
+end
+
+function Component:new(instance)
+	local object = {
+		instance = instance,
+		maid = Maid.new(),
+	}
+	setmetatable(object, self)
+
+	object:init()
+
+	return object
+end
+
+function Component:init()
+	merge(self, self.desc.defaultProps)
+
+	for _,mixin in pairs(self._mixins) do
+		if mixin.init then
+			mixin.init(self)
+		end
+	end
+
+	self.desc.init(self)
+
+	local module = self.instance:FindFirstChild("ComponentProperties")
 	local function load()
 		local props = require(module:Clone())
 		merge(self, props[self.className])
@@ -55,7 +85,7 @@ function Component.new(desc, core, mixins, instance)
 	local function connectChanged()
 		self._serializedPropsChanged = module.Changed:Connect(function(prop)
 			if prop == 'Source' then
-				merge(self, desc.defaultProps)
+				merge(self, self.desc.defaultProps)
 				load()
 			end
 		end)
@@ -65,7 +95,7 @@ function Component.new(desc, core, mixins, instance)
 		connectChanged()
 		load()
 	else
-		self._childAdded = instance.ChildAdded:Connect(function(child)
+		self._childAdded = self.instance.ChildAdded:Connect(function(child)
 			if child.Name == "ComponentProperties" then
 				module = child
 				connectChanged()
@@ -73,12 +103,15 @@ function Component.new(desc, core, mixins, instance)
 			end
 		end)
 	end
-
-	return self
 end
 
 function Component:destroy()
 	self.maid:clean()
+	for _,mixin in pairs(self._mixins) do
+		if mixin.destroy then
+			mixin.destroy(self)
+		end
+	end
 	if self._serializedPropsChanged then
 		self._serializedPropsChanged:Disconnect()
 	end
@@ -129,9 +162,23 @@ function Component:getComponentsOfType(component)
 end
 
 function Component:added()
+	self.desc.added(self)
+
+	for _,mixin in pairs(self._mixins) do
+		if mixin.added then
+			mixin.added(self)
+		end
+	end
 end
 
 function Component:removed()
+	self.desc.removed(self)
+
+	for _,mixin in pairs(self._mixins) do
+		if mixin.removed then
+			mixin.removed(self)
+		end
+	end
 end
 
 return Component
