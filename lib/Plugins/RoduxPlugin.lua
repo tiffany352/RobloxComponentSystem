@@ -28,9 +28,9 @@ function RoduxPlugin:init(args)
 	end)
 end
 
-RoduxPlugin.ComponentMixin = {}
+RoduxPlugin.ComponentMixins = {}
 
-function RoduxPlugin.ComponentMixin:init()
+function RoduxPlugin.ComponentMixins:init()
 	self.roduxStore = self._core.roduxStore
 end
 
