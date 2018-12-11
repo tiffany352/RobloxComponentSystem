@@ -53,6 +53,16 @@ function Core:registerComponents(componentDescs)
 	end
 end
 
+function Core:registerComponentsFromFolder(folder)
+	local list = {}
+	for _,module in pairs(folder:GetChildren()) do
+		if module:IsA("ModuleScript") then
+			list[#list+1] = require(module)
+		end
+	end
+	self:registerComponents(list)
+end
+
 function Core:getComponentFromInstance(componentDesc, instance)
 	local manager = self.componentManagers[componentDesc]
 	if not manager then
