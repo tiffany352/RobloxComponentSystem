@@ -16,8 +16,17 @@ function ComponentManager.new(desc, core, mixins)
 		class = Component:extend(desc, core, mixins),
 		descendantAddedConns = Maid.new(),
 		descendantRemovedConns = Maid.new(),
+		enabled = false,
 	}
 	setmetatable(self, ComponentManager)
+
+	return self
+end
+
+function ComponentManager:enable()
+	if self.enabled then return end
+	self.enabled = true
+
 
 	local function tagAdded(instance)
 		self:tagAdded(instance)
@@ -27,13 +36,13 @@ function ComponentManager.new(desc, core, mixins)
 		self:tagRemoved(instance)
 	end
 
-	for _,instance in pairs(CollectionService:GetTagged(desc.className)) do
+	for _,instance in pairs(CollectionService:GetTagged(self.desc.className)) do
 		self:tagAdded(instance)
 	end
-	self.instanceAddedConn = CollectionService:GetInstanceAddedSignal(desc.className):Connect(tagAdded)
-	self.instanceRemovedConn = CollectionService:GetInstanceRemovedSignal(desc.className):Connect(tagRemoved)
+	self.instanceAddedConn = CollectionService:GetInstanceAddedSignal(self.desc.className):Connect(tagAdded)
+	self.instanceRemovedConn = CollectionService:GetInstanceRemovedSignal(self.desc.className):Connect(tagRemoved)
 
-	for _,ancestor in pairs(desc.ancestorWhitelist) do
+	for _,ancestor in pairs(self.desc.ancestorWhitelist) do
 		self.descendantAddedConns[ancestor] = ancestor.DescendantAdded:Connect(tagAdded)
 		self.descendantRemovedConns[ancestor] = ancestor.DescendantRemoving:Connect(function(instance)
 			local conn
@@ -44,7 +53,7 @@ function ComponentManager.new(desc, core, mixins)
 		end)
 	end
 
-	for _,ancestor in pairs(desc.ancestorBlacklist) do
+	for _,ancestor in pairs(self.desc.ancestorBlacklist) do
 		self.descendantAddedConns[ancestor] = ancestor.DescendantAdded:Connect(tagRemoved)
 		self.descendantRemovedConns[ancestor] = ancestor.DescendantRemoving:Connect(function(instance)
 			local conn
@@ -54,15 +63,20 @@ function ComponentManager.new(desc, core, mixins)
 			end)
 		end)
 	end
-
-	return self
 end
 
-function ComponentManager:destroy()
+function ComponentManager:disable()
+	if not self.enabled then return end
+	self.enabled = false
+
 	self.instanceAddedConn:Disconnect()
 	self.instanceRemovedConn:Disconnect()
 	self.descendantAddedConns:cleanup()
 	self.descendantRemovedConns:cleanup()
+end
+
+function ComponentManager:destroy()
+	self:disable()
 end
 
 function ComponentManager:shouldHaveComponent(instance)

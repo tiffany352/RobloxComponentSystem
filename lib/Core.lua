@@ -28,12 +28,29 @@ function Core.new(args)
 	return self
 end
 
-function Core:registerComponent(componentDesc)
+function Core:_addComponent(componentDesc)
 	if self.componentsByName[componentDesc.className] then
 		error(string.format("Component name conflict for %q", componentDesc.className))
 	end
 	self.componentsByName[componentDesc.className] = componentDesc
-	self.componentManagers[componentDesc] = ComponentManager.new(componentDesc, self, self.mixins)
+	local manager = ComponentManager.new(componentDesc, self, self.mixins)
+	self.componentManagers[componentDesc] = manager
+	return manager
+end
+
+function Core:registerComponent(componentDesc)
+	local manager = self:_addComponent(componentDesc)
+	manager:enable()
+end
+
+function Core:registerComponents(componentDescs)
+	for _,componentDesc in pairs(componentDescs) do
+		self:_addComponent(componentDesc)
+	end
+
+	for _,componentDesc in pairs(componentDescs) do
+		self.componentManagers[componentDesc]:enable()
+	end
 end
 
 function Core:getComponentFromInstance(componentDesc, instance)
