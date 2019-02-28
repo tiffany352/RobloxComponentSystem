@@ -88,7 +88,7 @@ end
 
 function ModuleLoaderPlugin.ComponentMixins:destroy()
 	local maid = self[LoaderMaidSymbol]
-	maid:cleanup()
+	maid:clean()
 end
 
 return ModuleLoaderPlugin
