@@ -71,8 +71,8 @@ function ComponentManager:disable()
 
 	self.instanceAddedConn:Disconnect()
 	self.instanceRemovedConn:Disconnect()
-	self.descendantAddedConns:cleanup()
-	self.descendantRemovedConns:cleanup()
+	self.descendantAddedConns:clean()
+	self.descendantRemovedConns:clean()
 end
 
 function ComponentManager:destroy()
