@@ -43,6 +43,8 @@ function Maid.cleanupTask(task)
 		task:Destroy()
 	elseif task.destroy then
 		task:destroy()
+	elseif task.disconnect then
+		task:disconnect()
 	else
 		error("Unable to cleanup unknown task")
 	end
