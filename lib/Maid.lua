@@ -41,8 +41,6 @@ function Maid.cleanupTask(task)
 		task:Disconnect()
 	elseif taskTy == 'Instance' then
 		task:Destroy()
-	elseif task.Destroy then
-		task:Destroy()
 	elseif task.destroy then
 		task:destroy()
 	elseif task.disconnect then
