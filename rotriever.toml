@@ -1,0 +1,5 @@
+[package]
+name = "RobloxComponentSystem"
+author = "@tiffany352"
+content_root = "lib"
+version = "1.0.0"
